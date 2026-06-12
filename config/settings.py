@@ -1,40 +1,57 @@
-import os
-from typing import Optional
-from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 
 
-class EdgeSystemSettings(BaseSettings):
+class ApplicationSettings(BaseSettings):
     """
-    High-fidelity configuration management for the Edge AI Controller.
-    Enforces type safety and system-wide constants at initialization.
+    Centralized production-grade configuration layer utilizing Pydantic V2.
+    Defines systemic runtime constraints, security credential targets, 
+    and physical safety guardrail thresholds matching the Axon Dashboard.
     """
-    # OpenAI Platform Configuration
+    
+    # --- System Security Gate ---
     OPENAI_API_KEY: str = Field(
         ..., 
-        description="Bearer token for OpenAI API authenticated requests."
+        description="Production API token loaded securely from host environment runtime vectors."
     )
     VISION_MODEL: str = Field(
         default="gpt-4o-mini", 
-        description="LLM engine used for contextual visual processing."
+        description="Targeted multimodal vision language model core."
     )
-    
-    # Hardware & Peripheral Configuration
+
+    # --- Edge Perception Parameters ---
     CAMERA_INDEX: int = Field(
         default=0, 
-        description="Local system index for the primary video capture hardware."
+        description="Hardware bus channel mapping target for local video ingestion feed."
     )
-    TRIGGER_GPIO_PIN: int = Field(
-        default=18, 
-        description="BCM pin layout designation for physical actuator relay."
+    FRAME_WIDTH: int = Field(
+        default=1280, 
+        description="Target horizontal matrix resolution matching dashboard video feed."
     )
-    
-    # Vision Pipeline Thresholds
-    FRAME_WIDTH: int = Field(default=640, description="Downsampled frame width for optimization.")
-    FRAME_HEIGHT: int = Field(default=480, description="Downsampled frame height for optimization.")
-    MOTION_THRESHOLD: int = Field(default=10000, description="Minimum contour area delta to trigger anomaly.")
+    FRAME_HEIGHT: int = Field(
+        default=720, 
+        description="Target vertical matrix resolution matching dashboard video feed."
+    )
+    MOTION_THRESHOLD: int = Field(
+        default=10000, 
+        description="Minimum structural pixel area displacement required to trip anomaly flags."
+    )
 
-    # Configuration Metadata
+    # --- Physical Actuation Channels & Guardrails ---
+    TRIGGER_GPIO_PIN: int = Field(
+        default=17, 
+        description="Broadcom SoC GPIO pin channel assigned to execution Relay-A (Active High)."
+    )
+    VENT_GPIO_PIN: int = Field(
+        default=22, 
+        description="Broadcom SoC GPIO pin channel assigned to execution Vent Relay (Active High)."
+    )
+    MAX_SAFE_ROTATION: float = Field(
+        default=180.0, 
+        description="Absolute physical hardware safety boundary constraint. Intercepts structural hallucinations."
+    )
+
+    # --- Pydantic Engine Settings Config ---
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -42,13 +59,5 @@ class EdgeSystemSettings(BaseSettings):
     )
 
 
-# Instantiate a singleton instance for cross-module usage
-try:
-    settings = EdgeSystemSettings()
-except Exception as e:
-    # Fallback pattern for GitHub profile display purposes if .env isn't local yet
-    print(f"[PRE-FLIGHT WARNING]: Missing environment configurations: {e}")
-    # Mock fallback to prevent strict initialization failure during raw inspection
-    os.environ["OPENAI_API_KEY"] = "mock_key_for_repository_inspection"
-    settings = EdgeSystemSettings()
-  
+# Instantiate a secure configuration singleton for immediate global application access
+settings = ApplicationSettings()
